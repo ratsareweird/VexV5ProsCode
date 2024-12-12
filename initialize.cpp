@@ -3,19 +3,28 @@
 #include <utility>
 
 
+#define RED true
+#define BLUE false
+
 // runs initialization code. This occurs as soon as the program is started.
 void initialize() {
 	pros::lcd::initialize();
-	pros::lcd::set_text(1, "i dont wanna die");
+	pros::lcd::set_text(1, "i kinda wanna die");
 
 	set_all_brake_modes(drive_left_group, pros::E_MOTOR_BRAKE_BRAKE);
 	set_all_brake_modes(drive_right_group, pros::E_MOTOR_BRAKE_BRAKE);	
+
+	pros::vision_signature_s_t RED_SIG = pros::Vision::signature_from_utility(1, 9641, 10849, 10246, -1305, -845, -1076, 3.000, 0);
+	pros::vision_signature_s_t BLUE_SIG = pros::Vision::signature_from_utility(2, -4047, -3465, -3756, 6051, 7587, 6818, 3.000, 0);
+
+	vision_sensor.set_signature(1, &RED_SIG);
+    vision_sensor.set_signature(2, &BLUE_SIG);
+
 }
 
 
 // runs while the robot is in the disabled state
 void disabled() {
-
 
 }
 
@@ -24,27 +33,30 @@ void competition_initialize() {
 	imu.reset(true);
 	pros::c::adi_encoder_reset(left_drive_encoder);
 	pros::c::adi_encoder_reset(right_drive_encoder);
-
 }
 
 
+enum Code {
+	AUTON1,
+	AUTON2,
+	SKILLS,
+	TEST	
+};
+
 // runs the user autonomous code
 void autonomous() {
+	pros::Task task(ejectorTask, "Fun time");
 
-	enum Code {
-		AUTON1,
-		AUTON2,
-		SKILLS,
-		TEST	
-	};
+	enableEjector(true);
 
+	setColor(RED);
 	Code code_number = TEST;
 
 	// alliance
 	if (code_number == AUTON1) {
 		// score on wall stake
 		motor_seconds(conveyor, 0.1, -127);
-		turn_to(302, -70, 0);
+		turn_to(307, -70, 0);
 		motor_seconds(conveyor, 0.7, 127);
 		motor_seconds(conveyor, 0.1, -127);
 
@@ -54,7 +66,7 @@ void autonomous() {
 		move_conveyor(true, true);
 		move_intake(true, true);
 		move_inches(8, 30);
-		pros::delay(700);
+		pros::Task::delay(700);
 		turn_to(145, false);
 		move_intake(false, false);
 		move_conveyor(false, true);
@@ -63,26 +75,26 @@ void autonomous() {
 		move_inches(-22, 100);
 		move_inches(-11, 50);
 		move_clamp(true);
-		pros::delay(100);
+		pros::Task::delay(100);
 
 		// score ring on stake
 		move_conveyor(true, true);
-		pros::delay(750);
+		pros::Task::delay(750);
 
 		// go to last ring
 		turn_to(5, false);
 		move_intake(true, true);
-		move_inches(10, 40);
+		move_inches(9, 40);
 
 		// score last ring
-		pros::delay(1200);
+		pros::Task::delay(1400);
 		move_intake(false, true);
 
 		// touch ladder
 		turn_to(20, true);
 		move_conveyor(false, true);
 		wheels_speed(-70, -70);	
-		pros::delay(1200);
+		pros::Task::delay(1200);
 		wheels_speed(0, 0);
 
 
@@ -108,9 +120,9 @@ void autonomous() {
 		move_conveyor(true, true);
 		move_intake(true, true);
 		move_inches(10, 50);
-		pros::delay(300);
+		pros::Task::delay(300);
 		move_inches(8, 30);
-		pros::delay(400);
+		pros::Task::delay(400);
 
 		turn_to(215, true);
 		move_intake(false, false);
@@ -120,26 +132,26 @@ void autonomous() {
 		move_inches(-22, 100);
 		move_inches(-11, 50);
 		move_clamp(true);
-		pros::delay(100);
+		pros::Task::delay(100);
 
 		// score ring on stake
 		move_conveyor(true, true);
-		pros::delay(750);
+		pros::Task::delay(750);
 
 		// go to last ring
-		move_inches(5, 50);
+		//move_inches(5, 50);
 		turn_to(355, true);
 		move_intake(true, true);
-		move_inches(10, 40);
+		move_inches(14, 40);
 
 		// score last ring
-		pros::delay(1200);
+		pros::Task::delay(1200);
 		move_intake(false, true);
 
 		// touch ladder
 		turn_to(340, false);
 		move_conveyor(false, true);
-		move_seconds(1.2, -70, -70);
+		move_seconds(1.4, -70, -70);
 
 	}
 
@@ -165,7 +177,7 @@ void autonomous() {
 		turn_to(310, true);
 		move_intake_and_conveyor(true);
 		move_inches(24, 90);
-		pros::delay(300);
+		pros::Task::delay(300);
 
 
 		// get 3rd ring
@@ -173,7 +185,7 @@ void autonomous() {
 		move_inches(15, 110);
 		move_inches(10, 60);
 
-		pros::delay(300);
+		pros::Task::delay(300);
 
 		// get 4th/5th ring
 		move_inches(-4, 100);
@@ -201,8 +213,9 @@ void autonomous() {
 	}
 
 	else if (code_number == TEST) {
-	
-		pros::delay(3000);
+
+		pros::Task::delay(100000);	
+		/*pros::Task::delay(3000);
 		motor_seconds(conveyor, 0.1, -127);
 		turn_to(302, -70, 0);
 		motor_seconds(conveyor, 0.7, 127);
@@ -214,7 +227,7 @@ void autonomous() {
 		move_conveyor(true, true);
 		move_intake(true, true);
 		move_inches(10, 30);
-		pros::delay(500);
+		pros::Task::delay(500);
 		turn_to(145, false);
 		move_intake(false, false);
 		move_conveyor(false, true);
@@ -223,11 +236,11 @@ void autonomous() {
 		move_inches(-24, 100);
 		move_inches(-11, 50);
 		move_clamp(true);
-		pros::delay(100);
+		pros::Task::delay(100);
 
 		// score ring on stake
 		move_conveyor(true, true);
-		pros::delay(750);
+		pros::Task::delay(750);
 
 		// go to last ring
 		turn_to(5, false);
@@ -235,15 +248,15 @@ void autonomous() {
 		move_inches(10, 40);
 
 		// score last ring
-		pros::delay(1200);
+		pros::Task::delay(1200);
 		move_intake(false, true);
 
 		// touch ladder
 		turn_to(20, true);
 		move_conveyor(false, true);
 		wheels_speed(-70, -70);	
-		pros::delay(1200);
-		wheels_speed(0, 0);
+		pros::Task::delay(1200);
+		wheels_speed(0, 0);*/
 
 	}
 }
@@ -258,6 +271,8 @@ void opcontrol() {
 
 		score_preload();
 
-		pros::delay(10);
+		ejectorFun();
+
+		pros::Task::delay(20);
 	}
 }
