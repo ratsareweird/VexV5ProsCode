@@ -42,6 +42,9 @@ extern pros::ADIDigitalIn clamp_sensor;
 // vision sensor
 extern pros::Vision vision_sensor;
 
+// optical sensor
+extern pros::Optical optical_sensor;
+
 // controller
 extern pros::Controller controller;
 
@@ -76,9 +79,7 @@ void score_preload();
 
 // auton functions
 void move_inches(double inches, int speed);
-void move_inches(double left_inches, double right_inches);
-void move_inches(double left_inches, double right_inches, int speed);
-void move_inches(double left_inches, double left_speed, double right_inches, double right_speed);
+void move_inches(double left_inches, double right_inches, int max_speed);
 void move_seconds(float seconds, int left, int right);
 void hold_drivetrain(bool left_side, bool right_side, float seconds);
 int compensate();
@@ -87,6 +88,7 @@ void turn_to(int degrees);
 void turn_to(int degrees, bool right);
 void turn_to(int degrees, int speed, bool right);
 void turn_to(int degrees, int left_speed, int right_speed);
+void fix_angle(int degrees);
 void move_until_degrees(int left_speed, int right_speed, int degrees);
 void move_intake_and_conveyor(bool on);
 void move_intake(bool on, bool forward);
