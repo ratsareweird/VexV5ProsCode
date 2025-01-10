@@ -1,48 +1,52 @@
 #include "main.h"
+#include <cmath>
 #include <cstdint>
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <math.h>
 
 
 // motors
 
 // wheels
-pros::Motor left_front(16, pros::E_MOTOR_GEAR_BLUE, true, pros::E_MOTOR_ENCODER_DEGREES);
+pros::Motor left_front(20, pros::E_MOTOR_GEAR_BLUE, true, pros::E_MOTOR_ENCODER_DEGREES);
 pros::Motor left_middle(2, pros::E_MOTOR_GEAR_BLUE, true, pros::E_MOTOR_ENCODER_DEGREES);
-pros::Motor left_back(11, pros::E_MOTOR_GEAR_BLUE, true, pros::E_MOTOR_ENCODER_DEGREES);
-pros::Motor right_front(4, pros::E_MOTOR_GEAR_BLUE, false, pros::E_MOTOR_ENCODER_DEGREES);
-pros::Motor right_middle(15, pros::E_MOTOR_GEAR_BLUE, false, pros::E_MOTOR_ENCODER_DEGREES);
-pros::Motor right_back(14, pros::E_MOTOR_GEAR_BLUE, false, pros::E_MOTOR_ENCODER_DEGREES);
+pros::Motor left_back(19, pros::E_MOTOR_GEAR_BLUE, true, pros::E_MOTOR_ENCODER_DEGREES);
+pros::Motor right_front(3, pros::E_MOTOR_GEAR_BLUE, false, pros::E_MOTOR_ENCODER_DEGREES);
+pros::Motor right_middle(13, pros::E_MOTOR_GEAR_BLUE, false, pros::E_MOTOR_ENCODER_DEGREES);
+pros::Motor right_back(16, pros::E_MOTOR_GEAR_BLUE, false, pros::E_MOTOR_ENCODER_DEGREES);
 std::vector<pros::Motor> drive_left_group = {left_front,left_middle,left_back};
 std::vector<pros::Motor> drive_right_group = {right_front,right_middle,right_back};
 
 // intake
-pros::Motor left_intake(20, pros::E_MOTOR_GEAR_GREEN, false, pros::E_MOTOR_ENCODER_DEGREES);
-pros::Motor right_intake(12, pros::E_MOTOR_GEAR_GREEN, true, pros::E_MOTOR_ENCODER_DEGREES);
+pros::Motor left_intake(18, pros::E_MOTOR_GEAR_GREEN, false, pros::E_MOTOR_ENCODER_DEGREES);
+pros::Motor right_intake(14, pros::E_MOTOR_GEAR_GREEN, true, pros::E_MOTOR_ENCODER_DEGREES);
 
 // conveyor
-pros::Motor conveyor(18, pros::E_MOTOR_GEAR_GREEN, true, pros::E_MOTOR_ENCODER_DEGREES);
+pros::Motor conveyor(15, pros::E_MOTOR_GEAR_GREEN, true, pros::E_MOTOR_ENCODER_DEGREES);
 
 // clamp
-pros::ADIDigitalOut clamp('E');
+pros::ADIDigitalOut clamp('D');
 
 // lift
 pros::ADIDigitalOut lift('F');
 
 // ejector
-pros::ADIDigitalOut ejector('G');
+pros::ADIDigitalOut ejector('E');
 
 // inertia sensor
 pros::Imu imu(17);
 
 // optical shaft encoder
-pros::c::adi_encoder_t left_drive_encoder = pros::c::adi_encoder_init('C', 'D', false);
-pros::c::adi_encoder_t right_drive_encoder = pros::c::adi_encoder_init('A', 'B', true);
+pros::c::adi_encoder_t left_drive_encoder = pros::c::adi_encoder_init('H', 'G', false);
+pros::c::adi_encoder_t right_drive_encoder = pros::c::adi_encoder_init('B', 'C', false);
 
 // vision sensor
-pros::Vision vision_sensor(9, pros::E_VISION_ZERO_CENTER);
+pros::Vision vision_sensor(11, pros::E_VISION_ZERO_CENTER);
 
+// optical sensor
+pros::Optical optical_sensor(11);
 
 // controller
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
@@ -52,6 +56,12 @@ const double PI = 3.1415926;
 
 const double DRIVE_TRAIN_GEAR_RATIO = 3.0 / 5.0;
 const double WHEEL_RADIUS = 1.625;
+const double CHASSIS_WIDTH = 12;
+
+
+pros::vision_signature_s_t RED_SIG = pros::Vision::signature_from_utility(1, 8543, 11685, 10114, -729, 1, -364, 3.000, 0);
+pros::vision_signature_s_t BLUE_SIG = pros::Vision::signature_from_utility(2, -4287, -3641, -3964, 8191, 10083, 9137, 3.000, 0);
+
 
 
 
@@ -290,84 +300,30 @@ void move_inches(double inches, int speed) {
 }
 
 
-/**
-Moves left and right side of chassis a specified amount of inches at an accurate speed.
-*/
-void move_inches(double left_inches, double right_inches) {
-  pros::c::adi_encoder_reset(left_drive_encoder);
+
+
+
+void move_inches(double left_inches, double right_inches, int max_speed) {
   pros::c::adi_encoder_reset(right_drive_encoder);
+  double speed_modifier;
 
-  wheels_speed(50 * sign(left_inches), 50 * sign(right_inches));
+  if (right_inches >= left_inches) {
+    speed_modifier = (double) left_inches / right_inches;
+    wheels_speed(speed_modifier * max_speed, max_speed);
+  }
+  else if (right_inches < left_inches) {
+    speed_modifier = (double) right_inches / left_inches;
+    wheels_speed(max_speed, speed_modifier * max_speed);
+  }
 
-  bool left_goal = false;
-  bool right_goal = false;
-  while (!left_goal || !right_goal) {
-    if (fabs(degrees_to_drive_inches(left_drive_encoder)) > fabs(left_inches)) {
-      left_goal = true;
-      group_speed(drive_left_group, 0);
-    }
-    if (fabs(degrees_to_drive_inches(right_drive_encoder)) > fabs(right_inches)) {
-      group_speed(drive_right_group, 0);
-      right_goal = true;
-    }
-    
-    pros::Task::delay(10);
+  while (fabs(degrees_to_drive_inches(right_drive_encoder)) < fabs(right_inches)) {
+    controller.set_text(0, 0, std::to_string(degrees_to_drive_inches(right_drive_encoder)));
+    pros::Task::delay(20);
   }
   wheels_speed(0, 0);
+
 }
 
-/**
-Moves left and right side of chassis a specified amount of inches at a specified speed.
-*/
-void move_inches(double left_inches, double right_inches, int speed) {
-  pros::c::adi_encoder_reset(left_drive_encoder);
-  pros::c::adi_encoder_reset(right_drive_encoder);
-
-  wheels_speed(speed * sign(left_inches), speed * sign(right_inches));
-
-  bool left_goal = false;
-  bool right_goal = false;
-  while (!left_goal || !right_goal) {
-    if (fabs(degrees_to_drive_inches(left_drive_encoder)) > fabs(left_inches)) {
-      left_goal = true;
-      group_speed(drive_left_group, 0);
-    }
-    if (fabs(degrees_to_drive_inches(right_drive_encoder)) > fabs(right_inches)) {
-      group_speed(drive_right_group, 0);
-      right_goal = true;
-    }
-
-    pros::Task::delay(10);
-  }
-  wheels_speed(0, 0);
-}
-
-/**
-Moves left and right side of chassis a specified amount of inches at different speeds.
-*/
-void move_inches(double left_inches, double left_speed, double right_inches, double right_speed) {
-  pros::c::adi_encoder_reset(left_drive_encoder);
-  pros::c::adi_encoder_reset(right_drive_encoder);
-
-  wheels_speed(left_speed, right_speed);
-
-  bool left_goal = false;
-  bool right_goal = false;
-  while (!left_goal || !right_goal) {
-    if (fabs(degrees_to_drive_inches(left_drive_encoder)) > fabs(left_inches)) {
-      left_goal = true;
-      group_speed(drive_left_group, 0);
-    }
-    if (fabs(degrees_to_drive_inches(right_drive_encoder)) > fabs(right_inches)) {
-      right_goal = true;
-      group_speed(drive_right_group, 0);
-    }
-    controller.set_text(1, 1, std::to_string(fabs(degrees_to_drive_inches(left_drive_encoder))));
-
-    pros::Task::delay(10);
-  }
-  wheels_speed(0, 0);
-}
 
 /**
 Moves the left and right of chassis at a specified speed for a specified amount seconds.
@@ -538,6 +494,21 @@ void turn_to(int degrees, int left_speed, int right_speed) {
   wheels_speed(0, 0);
 }
 
+void fix_angle(int degrees) {
+  int margin = 5;
+  if (imu.get_heading() > degrees + margin) {
+    wheels_speed(-50, 50);
+  }
+  else if (imu.get_heading() < degrees - margin) {
+    wheels_speed(50, 50);
+  }
+
+  while (imu.get_heading() > degrees + margin || imu.get_heading() < degrees - margin) {
+    pros::Task::delay(20);
+  }
+  wheels_speed(0, 0);
+}
+
 /**
 Moves the left and right of the chassis at a specified speed until it reaches a certain absolute degree is reached.
 */
@@ -628,57 +599,59 @@ void enableEjector(bool on) {
 }
 
 /**
+Sets the color that the ejector likes
+ */
+bool color = true;
+double color_min;
+double color_max;
+void setColor(bool red) {
+  static double red_max = 25;
+  static double red_min = 0;
+  static double blue_max = 230;
+  static double blue_min = 180;
+
+  
+
+  if (red) {
+    color_min = blue_min;
+    color_max = blue_max;
+  }
+  else {
+    color_min = red_min;
+    color_max = red_max;
+  } 
+}
+
+/**
 The functionallity of the ejector
 */
-void ejectorFun() {
-  static bool runOnce = true;
+void ejectorFun() { 
+  double color = optical_sensor.get_hue();
 
-  static int color;
-  if (runOnce) {
-    runOnce = false;
-    if (getColor()) {
-      color = 2;
-    }
-    else {
-      color = 1;
-    }
-  }
-  
-  pros::vision_object_s_t ring = vision_sensor.get_by_size(0);
+  pros::lcd::set_text(3, std::to_string(color));
 
-  pros::lcd::set_text(2, std::to_string(ring.height) + " " + std::to_string(ring.width));
-  if (ring.signature == color && ring.width > 150) {
+  if (color >= color_min && color <= color_max) {
     activate_piston(ejector, true);
+    pros::Task::delay(300);
   }
   else {
     activate_piston(ejector, false);
   }
+
 }
 
 /**
 This is what is passed into the task
  */
 void ejectorTask(){
-	while (ejectorEnabled) {
+	while (true) {
     ejectorFun();
-    pros::Task::delay(20);
+    pros::Task::delay(1);
   }
 }
 
-/**
-Sets the color that the ejector likes
- */
-bool color = true;
-void setColor(bool red){
-  color = red;
-}
 
-/**
-Gets the color that the ejector likes
- */
-bool getColor() {
-  return color;
-}
+
 
 void taskTest() {
   while (true){
