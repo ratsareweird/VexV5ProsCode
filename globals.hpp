@@ -20,11 +20,11 @@ extern pros::Motor right_intake;
 extern pros::Motor conveyor;
 
 
-extern pros::ADIDigitalOut clamp;
+extern pros::adi::DigitalOut clamp;
 
-extern pros::ADIDigitalOut lift;
+extern pros::adi::DigitalOut lift;
 
-extern pros::ADIDigitalOut ejector;
+extern pros::adi::DigitalOut ejector;
 
 
 
@@ -37,7 +37,7 @@ extern pros::c::adi_encoder_t left_drive_encoder;
 extern pros::c::adi_encoder_t right_drive_encoder;
 
 // clamp sensor
-extern pros::ADIDigitalIn clamp_sensor;
+extern pros::adi::DigitalIn clamp_sensor;
  
 // vision sensor
 extern pros::Vision vision_sensor;
@@ -52,7 +52,7 @@ extern pros::Controller controller;
 void group_speed(std::vector<pros::Motor> group, int speed);
 void wheels_speed(int left, int right);
 
-void activate_piston(pros::ADIDigitalOut piston, bool on);
+void activate_piston(pros::adi::DigitalOut piston, bool on);
 
 double degrees_to_inches(int degrees, double radius);
 
