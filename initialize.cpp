@@ -14,7 +14,7 @@ void initialize() {
 	set_all_brake_modes(drive_left_group, pros::E_MOTOR_BRAKE_BRAKE);
 	set_all_brake_modes(drive_right_group, pros::E_MOTOR_BRAKE_BRAKE);	
 
-	setColor(RED);
+	setColor(BLUE);
 
 
 }
@@ -49,25 +49,29 @@ void autonomous() {
 
 	pros::Task task(ejectorTask, "Fun time");
 
-	Code code_number = REDPLUS;
+	Code code_number = BLUEPLUS;
 
 	// alliance
 	if (code_number == REDPLUS) {
 		// score on wall stake
 		motor_seconds(conveyor, 0.1, -127);
-		turn_to(307, -70, 0);
+		turn_to(297, -60, 0);
+		move_seconds(0.15, 0, 50);
+
 		motor_seconds(conveyor, 0.7, 127);
 		motor_seconds(conveyor, 0.1, -127);
 
 		// pick up second ring
 		turn_to(345, 90, -45);
-		turn_to(270, -5, 90);
+		turn_to(290, -20, 90);
 		turn_to(210, -40, 60);
 		move_intake_and_conveyor(true);
-		move_inches(3, 60);
+		move_inches(4, 60);
 		move_inches(9, 30);
 		pros::Task::delay(600);
 		move_intake_and_conveyor(false);
+		move_inches(-2, 70);
+
 
 		// go to mobile goal
 		turn_to(145, false);
@@ -80,7 +84,7 @@ void autonomous() {
 
 
 		// go to third ring
-		turn_to(5, 30, false);
+		turn_to(14, 50, false);
 		move_intake(true, true);
 
 		move_inches(12, 90);
@@ -90,7 +94,7 @@ void autonomous() {
 		move_inches(-7, 80);
 		turn_to(10, true);
 		move_inches(20, 90);
-		turn_to(72, 70);
+		turn_to(62, 70);
 		move_inches(10, 90);
 
 		// pick up fourth ring wiggle
@@ -98,6 +102,7 @@ void autonomous() {
 		move_seconds(0.2, 40, 40);
 		move_seconds(0.2, 50, -50);
 		move_seconds(0.2, -50, 50);
+		move_seconds(0.2, 50, -50);
 		pros::Task::delay(400);
 
 		// touch ladder
@@ -114,21 +119,24 @@ void autonomous() {
 	else if (code_number == BLUEPLUS) {
 		// score on wall stake
 		motor_seconds(conveyor, 0.1, -127);
-		turn_to(55, 0, -70);
+		turn_to(63, 0, -60);
+		move_seconds(0.15, 50, 0);
+
 		motor_seconds(conveyor, 0.7, 127);
 		motor_seconds(conveyor, 0.1, -127);
 
 		// pick up second ring
 		turn_to(15, -45, 90);
-		turn_to(90, 90, -5);
+		turn_to(90, 90, -20);
 		turn_to(150, 60, -40);
 		move_intake_and_conveyor(true);
-		move_inches(3, 60);
-		move_inches(15, 30);
-		pros::Task::delay(600);
+		move_inches(6, 60);
+		move_inches(9, 30);
+		pros::Task::delay(400);
 		move_intake_and_conveyor(false);
 
 		// go to mobile goal
+		//move_inches(-2, 70);
 		turn_to(210, true);
 		move_inches(-17, 100);
 		move_inches(-10, 30);
@@ -148,7 +156,7 @@ void autonomous() {
 		// go to fourth ring
 		move_inches(-4, 80);
 		turn_to(340, false);
-		move_inches(22, 90);
+		move_inches(17, 90);
 		turn_to(305, -70, 70);
 		move_inches(6, 90);
 
@@ -378,12 +386,12 @@ void autonomous() {
 		pros::Task::delay(1000000);
 	}
 
+	task.suspend();
+
 }
 
 // runs the user driver code
 void opcontrol() {
-
-	pros::lcd::set_background_color(0, 91, 255);
 
 	set_all_brake_modes(drive_left_group, pros::E_MOTOR_BRAKE_BRAKE);
 	set_all_brake_modes(drive_right_group, pros::E_MOTOR_BRAKE_BRAKE);
