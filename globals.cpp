@@ -10,30 +10,30 @@
 // motors
 
 // wheels
-pros::Motor left_front(20, pros::E_MOTOR_GEAR_BLUE, true, pros::E_MOTOR_ENCODER_DEGREES);
-pros::Motor left_middle(2, pros::E_MOTOR_GEAR_BLUE, true, pros::E_MOTOR_ENCODER_DEGREES);
-pros::Motor left_back(19, pros::E_MOTOR_GEAR_BLUE, true, pros::E_MOTOR_ENCODER_DEGREES);
-pros::Motor right_front(3, pros::E_MOTOR_GEAR_BLUE, false, pros::E_MOTOR_ENCODER_DEGREES);
-pros::Motor right_middle(13, pros::E_MOTOR_GEAR_BLUE, false, pros::E_MOTOR_ENCODER_DEGREES);
-pros::Motor right_back(16, pros::E_MOTOR_GEAR_BLUE, false, pros::E_MOTOR_ENCODER_DEGREES);
+pros::Motor left_front(-20, pros::v5::MotorGears::blue, pros::v5::MotorEncoderUnits::degrees);
+pros::Motor left_middle(-2, pros::v5::MotorGears::blue, pros::v5::MotorEncoderUnits::degrees);
+pros::Motor left_back(-19, pros::v5::MotorGears::blue, pros::v5::MotorEncoderUnits::deg);
+pros::Motor right_front(3, pros::v5::MotorGears::blue, pros::v5::MotorEncoderUnits::deg);
+pros::Motor right_middle(13, pros::v5::MotorGears::blue, pros::v5::MotorEncoderUnits::deg);
+pros::Motor right_back(16, pros::v5::MotorGears::blue, pros::v5::MotorEncoderUnits::deg);
 std::vector<pros::Motor> drive_left_group = {left_front,left_middle,left_back};
 std::vector<pros::Motor> drive_right_group = {right_front,right_middle,right_back};
 
 // intake
-pros::Motor left_intake(18, pros::E_MOTOR_GEAR_GREEN, false, pros::E_MOTOR_ENCODER_DEGREES);
-pros::Motor right_intake(14, pros::E_MOTOR_GEAR_GREEN, true, pros::E_MOTOR_ENCODER_DEGREES);
+pros::Motor left_intake(18,pros::v5::MotorGears::green, pros::v5::MotorEncoderUnits::deg);
+pros::Motor right_intake(-14, pros::v5::MotorGears::green, pros::v5::MotorEncoderUnits::deg);
 
 // conveyor
-pros::Motor conveyor(15, pros::E_MOTOR_GEAR_GREEN, true, pros::E_MOTOR_ENCODER_DEGREES);
+pros::Motor conveyor(-15, pros::v5::MotorGears::green, pros::v5::MotorEncoderUnits::deg);
 
 // clamp
-pros::ADIDigitalOut clamp('D');
+pros::adi::DigitalOut clamp('D');
 
 // lift
-pros::ADIDigitalOut lift('F');
+pros::adi::DigitalOut lift('F');
 
 // ejector
-pros::ADIDigitalOut ejector('E');
+pros::adi::DigitalOut ejector('E');
 
 // inertia sensor
 pros::Imu imu(17);
@@ -72,7 +72,7 @@ Sets the speed of all motors in a specified motor group
 */
 void group_speed(std::vector<pros::Motor> group, int speed) {
   for (pros::Motor motor : group)
-    motor = speed;
+    motor.move(speed);
 }
 
 /**
@@ -86,7 +86,7 @@ void wheels_speed(int left_speed, int right_speed) {
 /**
 Turns a specified piston on or off
 */
-void activate_piston(pros::ADIDigitalOut piston, bool on) {
+void activate_piston(pros::adi::DigitalOut piston, bool on) {
   if (on)
     piston.set_value(1);
   else 
@@ -161,11 +161,11 @@ void better_hold(int rotation, pros::Motor motor) {
   static int speed = 20;
   
   if (pros::c::motor_get_position(motor.get_port()) > rotation + margin) 
-    motor = -speed;
+    motor.move(-speed);
   else if (pros::c::motor_get_position(motor.get_port()) < rotation - margin)
-    motor = speed;
+    motor.move(speed);
   else
-    motor = -0;
+    motor.move(0);
 }
 
 
@@ -218,23 +218,20 @@ void drive_intake() {
 
 
   if (controller.get_digital(intake_button)) {
-    left_intake = 127;
-    right_intake = 127;
-    conveyor = 127;
+    left_intake.move(127);
+    right_intake.move(127);
+    conveyor.move(127);
   }
   else if (controller.get_digital(extake_button)) {
-    right_intake = -127;
-    left_intake = -127;
-    conveyor = -127;
+    right_intake.move(-127);
+    left_intake.move(-127);
+    conveyor.move(-127);
   }
   else {
-    left_intake = 0;
-    right_intake = 0;
-    conveyor = 0;
+    left_intake.move(0);
+    right_intake.move(0);
+    conveyor.move(0);
   }
-
-  
-
 }
 
 
@@ -248,8 +245,6 @@ void drive_clamp() {
     on = !on;
     activate_piston(clamp, on);
   }
-
-  
 }
 
 pros::controller_digital_e_t lift_button = DIGITAL_RIGHT;
@@ -262,8 +257,6 @@ void drive_lift() {
     on = !on;
     activate_piston(lift, on);
   }
-
- 
 }
 
 
@@ -534,18 +527,18 @@ Turns the intake on or off in a specifed direction.
 void move_intake(bool on, bool forward) {
   if (on) {
     if (forward) {
-      left_intake = 127;
-      right_intake = 127;
+      left_intake.move(127);
+      right_intake.move(127);
     }
     else {
-      left_intake = -127;
-      right_intake = -127;
+      left_intake.move(-127);
+      right_intake.move(-127);
     }
 
   }
   else {
-    right_intake = 0;
-    left_intake = 0;
+    right_intake.move(0);
+    left_intake.move(0);
   }
 }
 
@@ -555,13 +548,13 @@ Turns the conveyor on or off in a specifed direction.
 void move_conveyor(bool on, bool forward) {
   if (on) {
     if (forward) {
-      conveyor = 127;    }
+      conveyor.move(127);    }
     else {
-      conveyor = -127;
+      conveyor.move(-127);
     }
   }
   else {
-    conveyor = 0;
+    conveyor.move(0);
   }
 }
 
@@ -584,9 +577,9 @@ void move_clamp(bool on) {
 Moves any specified motor for a specifed amount of seconds
  */
 void motor_seconds(pros::Motor motor, float seconds, int speed) {
-  motor = speed;
+  motor.move(speed);
   pros::Task::delay(seconds * 1000);
-  motor = 0;
+  motor.move(0);
 }
 
 
@@ -610,7 +603,7 @@ void setColor(bool red) {
   static double blue_max = 230;
   static double blue_min = 180;
 
-  
+  optical_sensor.set_integration_time(10);
 
   if (red) {
     color_min = blue_min;
@@ -630,6 +623,8 @@ void ejectorFun() {
 
   pros::lcd::set_text(3, std::to_string(color));
 
+
+
   if (color >= color_min && color <= color_max) {
     activate_piston(ejector, true);
     pros::Task::delay(300);
@@ -646,7 +641,7 @@ This is what is passed into the task
 void ejectorTask(){
 	while (true) {
     ejectorFun();
-    pros::Task::delay(1);
+    pros::Task::delay(10);
   }
 }
 
@@ -655,6 +650,6 @@ void ejectorTask(){
 
 void taskTest() {
   while (true){
-    pros::lcd::set_background_color(100, 50, 70);
+    pros::Task::delay(30);
   }
 }
