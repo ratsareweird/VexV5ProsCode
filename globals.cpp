@@ -39,14 +39,16 @@ pros::adi::DigitalOut ejector('E');
 pros::Imu imu(17);
 
 // optical shaft encoder
-pros::c::adi_encoder_t left_drive_encoder = pros::c::adi_encoder_init('H', 'G', false);
-pros::c::adi_encoder_t right_drive_encoder = pros::c::adi_encoder_init('B', 'C', false);
+pros::adi::Encoder left_drive_encoder('H', 'G', false);
+pros::adi::Encoder right_drive_encoder('B', 'C', false);
 
 // vision sensor
 pros::Vision vision_sensor(11, pros::E_VISION_ZERO_CENTER);
 
 // optical sensor
 pros::Optical optical_sensor(11);
+
+pros::adi::Encoder lift_encoder({5, 'A', 'B'}, false);
 
 // controller
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
@@ -116,8 +118,8 @@ double degrees_to_inches(int degrees, double radius) {
 /**
 Gets the inches that an encoder has registered that the chassis has moved
 */
-double degrees_to_drive_inches(pros::c::adi_encoder_t encoder) {
-  return degrees_to_inches(pros::c::adi_encoder_get(encoder), WHEEL_RADIUS);
+double degrees_to_drive_inches(pros::adi::Encoder encoder) {
+  return degrees_to_inches(encoder.get_value(), WHEEL_RADIUS);
 }
 
 /**
@@ -212,25 +214,50 @@ void drive_wheels() {
 
 pros::controller_digital_e_t intake_button = DIGITAL_R2;
 pros::controller_digital_e_t extake_button = DIGITAL_R1;
+pros::controller_digital_e_t lift_setup = DIGITAL_RIGHT;
 
-
+bool setting_up = false;
 void drive_intake() {
+  static bool run_once = true;
+  if (run_once) {
+    pros::Task lift_task(lift_setup_task, "Setup Task");
 
+    run_once = false;
+  }
+  
+  if (!setting_up) {
+    if (controller.get_digital(intake_button)) {
+      left_intake.move(127);
+      right_intake.move(127);
+      conveyor.move(127);
+    }
+    else if (controller.get_digital(extake_button)) {
+      right_intake.move(-127);
+      left_intake.move(-127);
+      conveyor.move(-127);
+    }
+    else {
+      left_intake.move(0);
+      right_intake.move(0);
+      conveyor.move(0);
+    }
+  }
+ 
+  if (controller.get_digital_new_press(lift_setup)) {
+    if (setting_up) {
+      setting_up = false;
+    }
+    else {
+      setting_up = true;
+    }
+  }
+}
 
-  if (controller.get_digital(intake_button)) {
-    left_intake.move(127);
-    right_intake.move(127);
-    conveyor.move(127);
-  }
-  else if (controller.get_digital(extake_button)) {
-    right_intake.move(-127);
-    left_intake.move(-127);
-    conveyor.move(-127);
-  }
-  else {
-    left_intake.move(0);
-    right_intake.move(0);
-    conveyor.move(0);
+void intake_setup_task() {
+  while (true) {
+    if (setting_up) {
+      
+    }
   }
 }
 
@@ -240,15 +267,16 @@ pros::controller_digital_e_t alt_clamp_button = DIGITAL_L2;
 
 void drive_clamp() {
   static bool on = false;
-
   if (controller.get_digital_new_press(clamp_button) || controller.get_digital_new_press(alt_clamp_button)) {
     on = !on;
     activate_piston(clamp, on);
   }
 }
 
-pros::controller_digital_e_t lift_button = DIGITAL_RIGHT;
+
+pros::controller_digital_e_t lift_button;
 pros::controller_digital_e_t alt_lift_button = DIGITAL_Y;
+
 
 void drive_lift() {
   static bool on = false;
@@ -258,7 +286,6 @@ void drive_lift() {
     activate_piston(lift, on);
   }
 }
-
 
 
 pros::controller_digital_e_t sp1 = DIGITAL_LEFT;
@@ -279,9 +306,9 @@ void score_preload() {
 /**
 Moves chassis a specified amount of inches at a specified speed
  */
-void move_inches(double inches, int speed) {
-  pros::c::adi_encoder_reset(left_drive_encoder);
-  pros::c::adi_encoder_reset(right_drive_encoder);
+void move_inches(double inches, int speed) {\
+  left_drive_encoder.reset();
+  right_drive_encoder.reset();
 
   wheels_speed(speed * sign(inches), speed * sign(inches));
 
@@ -297,7 +324,9 @@ void move_inches(double inches, int speed) {
 
 
 void move_inches(double left_inches, double right_inches, int max_speed) {
-  pros::c::adi_encoder_reset(right_drive_encoder);
+  left_drive_encoder.reset();
+  right_drive_encoder.reset();
+
   double speed_modifier;
 
   if (right_inches >= left_inches) {
@@ -375,8 +404,8 @@ void hold_drivetrain(bool left_side, bool right_side, float seconds) {
   int speed = 30;
   double margin = 0;
 
-  pros::c::adi_encoder_reset(left_drive_encoder);
-  pros::c::adi_encoder_reset(right_drive_encoder);
+  left_drive_encoder.reset();
+  right_drive_encoder.reset();
   
   while (timer / 1000 < seconds) {
     if (left_side) {
@@ -413,9 +442,23 @@ Turns the chassis until it reaches a specified degree using the imu. The imu is 
 This will probably turn in the direction that will result in the least amount of turning
 */
 void turn_to(int degrees) {
-  double startHeading = imu.get_heading();
+  static int margin = 2;
+  static int speed = 40;
+
+  if (degrees -  imu.get_heading() > 0) {
+    wheels_speed(speed, -speed);
+  }
+  else {
+    wheels_speed(-speed, speed);
+  }
+
+  while (imu.get_heading() > degrees + margin || imu.get_heading() < degrees - margin) {
+    pros::Task::delay(10);
+  }
+
+
   
-  if (degrees + startHeading < 180) {
+  /*if (degrees + startHeading < 180) {
     wheels_speed(50, -50);
     pros::c::delay(10);
     imu.set_heading(0);
@@ -435,7 +478,7 @@ void turn_to(int degrees) {
   }
   wheels_speed(0, 0);
   imu.set_heading(imu.get_heading() + startHeading);
-  controller.set_text(1, 1, std::to_string(imu.get_heading()));
+  controller.set_text(1, 1, std::to_string(imu.get_heading()));*/
 
 }
 
@@ -591,48 +634,40 @@ void enableEjector(bool on) {
   ejectorEnabled = on;
 }
 
+
 /**
-Sets the color that the ejector likes
+Sets the color that the ejector likes, sets the refresh rate of the optical sensor, and lights the led
  */
-bool color = true;
-double color_min;
-double color_max;
-void setColor(bool red) {
-  static double red_max = 25;
-  static double red_min = 0;
-  static double blue_max = 230;
-  static double blue_min = 180;
-
+Color ejectColor = BLUE;
+Color side = RED;
+void setColor(Color color) {
   optical_sensor.set_integration_time(10);
+  optical_sensor.set_led_pwm(50);
 
-  if (red) {
-    color_min = blue_min;
-    color_max = blue_max;
+  side = color;
+  if (color == RED) {
+
+    ejectColor = BLUE;
   }
   else {
-    color_min = red_min;
-    color_max = red_max;
-  } 
+    ejectColor = RED;
+  }
 }
 
 /**
-The functionallity of the ejector
-*/
-void ejectorFun() { 
-  double color = optical_sensor.get_hue();
-
-  pros::lcd::set_text(3, std::to_string(color));
-
-
-
-  if (color >= color_min && color <= color_max) {
-    activate_piston(ejector, true);
-    pros::Task::delay(300);
-  }
-  else {
-    activate_piston(ejector, false);
+Returns the color that the optical sensor sees and is close enough to the sensor
+ */
+Color get_seen_color() {
+  if (optical_sensor.get_proximity() > 250) {
+    if (optical_sensor.get_rgb().red > 150) {
+      return RED;
+    }
+    else if (optical_sensor.get_rgb().blue > 150){
+      return BLUE;
+    }
   }
 
+  return NONE;
 }
 
 /**
@@ -640,12 +675,16 @@ This is what is passed into the task
  */
 void ejectorTask(){
 	while (true) {
-    ejectorFun();
+    if (get_seen_color() == ejectColor) {
+      activate_piston(ejector, true);
+      pros::Task::delay(300);
+    }
+    else {
+      activate_piston(ejector, false);
+    }
     pros::Task::delay(10);
   }
 }
-
-
 
 
 void taskTest() {
