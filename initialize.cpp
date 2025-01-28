@@ -301,7 +301,7 @@ void autonomous() {
 	}
 
 	else if (code_number == SKILLS) {
-		/*// score on wall stake
+		// score on wall stake
 		motor_seconds(conveyor, 0.4, 127);
 		motor_seconds(conveyor, 0.1, -127);
 
@@ -364,7 +364,7 @@ void autonomous() {
 
 		// get stake 2
 		turn_to(3, true);
-		move_inches(-12, 50);*/
+		move_inches(-12, 50);
 		move_clamp(true);
 
 		// get ring 8
