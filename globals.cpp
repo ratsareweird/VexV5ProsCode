@@ -60,6 +60,8 @@ const double DRIVE_TRAIN_GEAR_RATIO = 3.0 / 5.0;
 const double WHEEL_RADIUS = 1.625;
 const double CHASSIS_WIDTH = 12;
 
+Color ejectColor = BLUE;
+Color side = RED;
 
 pros::vision_signature_s_t RED_SIG = pros::Vision::signature_from_utility(1, 8543, 11685, 10114, -729, 1, -364, 3.000, 0);
 pros::vision_signature_s_t BLUE_SIG = pros::Vision::signature_from_utility(2, -4287, -3641, -3964, 8191, 10083, 9137, 3.000, 0);
@@ -217,14 +219,8 @@ pros::controller_digital_e_t extake_button = DIGITAL_R1;
 pros::controller_digital_e_t lift_setup = DIGITAL_RIGHT;
 
 bool setting_up = false;
-void drive_intake() {
-  static bool run_once = true;
-  if (run_once) {
-    pros::Task lift_task(lift_setup_task, "Setup Task");
 
-    run_once = false;
-  }
-  
+void drive_intake() {
   if (!setting_up) {
     if (controller.get_digital(intake_button)) {
       left_intake.move(127);
@@ -244,21 +240,41 @@ void drive_intake() {
   }
  
   if (controller.get_digital_new_press(lift_setup)) {
+    setting_up = !setting_up;
     if (setting_up) {
-      setting_up = false;
+      //toggle_lift_task(true);
     }
     else {
-      setting_up = true;
+      //setup_task.suspend();
     }
   }
 }
 
-void intake_setup_task() {
-  while (true) {
-    if (setting_up) {
-      
-    }
+void toggle_lift_task(bool on) {
+  //pros::Task lift_task(lift_setup_task, "Setup Task");
+}
+
+void lift_setup_task() {
+  while (get_seen_color() != side) {
+    left_intake.move(127);
+    right_intake.move(127);
+    conveyor.move(127);
+
+    pros::Task::delay(30);
   }
+
+  conveyor.tare_position_all();
+
+  conveyor.move(-127);
+  left_intake.move(0);
+  right_intake.move(0);
+
+  while (conveyor.get_position() > -600) {
+    pros::Task::delay(30);
+  }
+
+  conveyor.move(0);
+
 }
 
 
@@ -274,14 +290,14 @@ void drive_clamp() {
 }
 
 
-pros::controller_digital_e_t lift_button;
+//pros::controller_digital_e_t lift_button;
 pros::controller_digital_e_t alt_lift_button = DIGITAL_Y;
 
 
 void drive_lift() {
   static bool on = false;
 
-  if (controller.get_digital_new_press(lift_button) || controller.get_digital_new_press(alt_lift_button)) {
+  if (controller.get_digital_new_press(alt_lift_button)) {
     on = !on;
     activate_piston(lift, on);
   }
@@ -319,11 +335,20 @@ void move_inches(double inches, int speed) {\
   wheels_speed(0, 0);
 }
 
+void move_inches(double inches, int left_speed, int right_speed){
+  left_drive_encoder.reset();
+
+  wheels_speed(left_speed, right_speed);
+
+  while (fabs(degrees_to_drive_inches(left_drive_encoder)) < fabs(inches)) {  
+    pros::Task::delay(10);
+  }
+  wheels_speed(0, 0);
+}
 
 
 
-
-void move_inches(double left_inches, double right_inches, int max_speed) {
+void move_inches_c(double left_inches, double right_inches, int max_speed) {
   left_drive_encoder.reset();
   right_drive_encoder.reset();
 
@@ -638,8 +663,7 @@ void enableEjector(bool on) {
 /**
 Sets the color that the ejector likes, sets the refresh rate of the optical sensor, and lights the led
  */
-Color ejectColor = BLUE;
-Color side = RED;
+
 void setColor(Color color) {
   optical_sensor.set_integration_time(10);
   optical_sensor.set_led_pwm(50);
