@@ -33,8 +33,10 @@ extern pros::IMU imu;
 
 
 // optical shaft encoders
-extern pros::c::adi_encoder_t left_drive_encoder;
-extern pros::c::adi_encoder_t right_drive_encoder;
+extern pros::adi::Encoder left_drive_encoder;
+extern pros::adi::Encoder right_drive_encoder;
+
+extern pros::adi::Encoder lift_encoder;
 
 // clamp sensor
 extern pros::adi::DigitalIn clamp_sensor;
@@ -48,6 +50,12 @@ extern pros::Optical optical_sensor;
 // controller
 extern pros::Controller controller;
 
+enum Color {
+    RED,
+    BLUE,
+    NONE
+};
+
 // helper functions
 void group_speed(std::vector<pros::Motor> group, int speed);
 void wheels_speed(int left, int right);
@@ -56,7 +64,7 @@ void activate_piston(pros::adi::DigitalOut piston, bool on);
 
 double degrees_to_inches(int degrees, double radius);
 
-double degrees_to_drive_inches(pros::c::adi_encoder_t encoder);
+double degrees_to_drive_inches(pros::adi::Encoder encoder);
 
 int sign(double value);
 
@@ -79,7 +87,8 @@ void score_preload();
 
 // auton functions
 void move_inches(double inches, int speed);
-void move_inches(double left_inches, double right_inches, int max_speed);
+void move_inches(double inches, int left_speed, int right_speed);
+void move_inches_c(double left_inches, double right_inches, int max_speed);
 void move_seconds(float seconds, int left, int right);
 void hold_drivetrain(bool left_side, bool right_side, float seconds);
 int compensate();
@@ -99,13 +108,16 @@ void motor_seconds(pros::Motor motor, float seconds, int speed);
 void enableEjector(bool on);
 
 void ejectorTask();
+void lift_setup_task();
+
+void toggle_lift_task(bool on);
 
 void ejectorFun();
 
 void taskTest();
 
-void setColor(bool red);
-bool getColor();
+void setColor(Color color);
+Color get_seen_color();
 
 
 //poop
