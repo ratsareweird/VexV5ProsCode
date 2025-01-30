@@ -93,7 +93,7 @@ void move_seconds(float seconds, int left, int right);
 void hold_drivetrain(bool left_side, bool right_side, float seconds);
 int compensate();
 void turn_seconds(float seconds, int speed, bool right);
-void turn_to(int degrees);
+void reset_angle();
 void turn_to(int degrees, bool right);
 void turn_to(int degrees, int speed, bool right);
 void turn_to(int degrees, int left_speed, int right_speed);
