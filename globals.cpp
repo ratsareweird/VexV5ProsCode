@@ -463,48 +463,27 @@ void hold_drivetrain(bool left_side, bool right_side, float seconds) {
 }
 
 /**
-Turns the chassis until it reaches a specified degree using the imu. The imu is never tared so give it an absolute degree rather than a relative change.
+Turns the chassis until it reaches a specified degree using the imu.
 This will probably turn in the direction that will result in the least amount of turning
 */
-void turn_to(int degrees) {
+void reset_angle() {
   static int margin = 2;
-  static int speed = 40;
+  static int speed = 35;
 
-  if (degrees -  imu.get_heading() > 0) {
+  double start_heading = imu.get_heading();
+
+  if (imu.get_heading() > 180) {
     wheels_speed(speed, -speed);
   }
   else {
     wheels_speed(-speed, speed);
   }
 
-  while (imu.get_heading() > degrees + margin || imu.get_heading() < degrees - margin) {
+  while (imu.get_heading() > margin && imu.get_heading() < 360 - margin) {
     pros::Task::delay(10);
   }
 
-
-  
-  /*if (degrees + startHeading < 180) {
-    wheels_speed(50, -50);
-    pros::c::delay(10);
-    imu.set_heading(0);
-    while (imu.get_heading() < degrees + startHeading) {
-      pros::c::delay(10);
-      controller.set_text(1, 1, std::to_string(imu.get_heading()));
-    }
-  }
-  else {
-    wheels_speed(-50, 50);
-    pros::c::delay(10);
-    imu.set_heading(359.9);
-    while (imu.get_heading() > degrees + startHeading) {
-      pros::c::delay(10);
-      controller.set_text(1, 1, std::to_string(imu.get_heading()));
-    }
-  }
   wheels_speed(0, 0);
-  imu.set_heading(imu.get_heading() + startHeading);
-  controller.set_text(1, 1, std::to_string(imu.get_heading()));*/
-
 }
 
 /**
