@@ -301,7 +301,7 @@ void autonomous() {
 	}
 
 	else if (code_number == SKILLS) {
-		// score on wall stake
+		// score preload on alliance stake
 		motor_seconds(conveyor, 0.4, 127);
 		motor_seconds(conveyor, 0.1, -127);
 
@@ -325,14 +325,14 @@ void autonomous() {
 		move_inches(7, 50);
 	
 		// get ring 3
-		turn_to(42, -50, 60);
-		move_inches(14, 70);
+		//turn_to(42, -50, 60);
+		move_inches(14, 50, 85);
 		move_inches(10, 30);
 		pros::Task::delay(200);
 
 		// get ring 4, 5
 		move_inches(-9, 80);
-		turn_to(165, true);
+		turn_to(165, 40, -50);
 		move_inches(15, 75);
 		pros::Task::delay(300);
 		move_inches(10, 50);
@@ -353,47 +353,101 @@ void autonomous() {
 
 		// go to other side
 		move_inches(10, 80);
-		turn_to(280, false);
+		turn_to(285, false);
 		move_inches(50, 83, 80);
 
 		// get ring 7
-		turn_to(315);
+		turn_to(315, true);
 		move_intake_and_conveyor(true);
 		move_inches(25, 50);
-		move_intake_and_conveyor(false);
 
 		// get stake 2
-		turn_to(3, true);
+		reset_angle();		
+		move_intake_and_conveyor(false);
 		move_inches(-12, 50);
 		move_clamp(true);
 
 		// get ring 8
-		//turn_to(318, false);
-		imu.set_heading(315);
+		turn_to(325, false);
 		move_intake_and_conveyor(true);
-		move_inches(25, 70);
+		move_inches(17, 70);
 
 		// get ring 9
-		//turn_to(321, 40, -40);
-		move_inches(22, 60, 50);
+		move_inches(32, 80, 50);
+		move_inches(5, 40);
 
 		// get ring 10 and 11
-		turn_to(190, -70, 40);
-		move_inches(20, 70);
-		move_inches(10, 50);
+		move_inches(-12, 50);
+		turn_to(200, -70, 40);
+		move_inches(16, 70);
+		pros::Task::delay(300);
+		move_inches(8, 50);
 		move_seconds(0.3, 30, 30);
 
 		// get ring 12
-		move_inches(-16, 70);
-		turn_to(265, 90, 0);
+		move_inches(-17, 70);
+		turn_to(260, 90, 0);
 		move_inches(5, 50);
 
-
+		// score stake 2
+		turn_to(5, 50, -50);
+		move_seconds(0.75, -65, -65);
+		pros::Task::delay(300);
+		move_clamp(false);
 		move_intake_and_conveyor(false);
+
+		// go to other side
+		move_inches(5, 80, 80);
+		reset_angle();
+		turn_to(25, 90, 60);
+		//move_inches(50, 90, 60);
+		move_inches(65, 70);
+
+		// push stake 3 into corner
+		turn_to(290, 10, 60);
+		move_inches(30, 55, 50);
+		move_seconds(0.2, 50, 50);
+
+		// push stake 4 into corner
+		move_inches(-10, 80);
+		turn_to(100, false);
+		move_inches(57, 73, 70);
+		move_seconds(0.2, 0, 40);
+		move_inches(30, 60);
+		move_seconds(0.4, 50, 50);
+
+
+		move_seconds(0.5, -50, -50);
+
+
 	}
 
 	else if (code_number == TEST) {
-		pros::Task::delay(1000000);
+
+		// go to other side
+		imu.set_heading(20);
+		move_inches(20, 80, 80);
+		reset_angle();
+		move_inches(65, 90, 70);
+		move_inches(20, 60);
+
+		// push stake 3 into corner
+		turn_to(285, 10, 60);
+		//move_inches(20, 90);
+		move_inches(30, 50);
+		move_seconds(0.2, 50, 50);
+
+		// push stake 4 into corner
+		move_inches(-10, 80);
+		turn_to(100, false);
+		move_inches(57, 73, 70);
+		move_seconds(0.2, 0, 40);
+		move_inches(30, 60);
+		move_seconds(0.4, 50, 50);
+
+
+		move_seconds(0.5, -50, -50);
+
 	}
 
 	task.remove();
