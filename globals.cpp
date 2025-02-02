@@ -242,16 +242,25 @@ void drive_intake() {
   if (controller.get_digital_new_press(lift_setup)) {
     setting_up = !setting_up;
     if (setting_up) {
-      //toggle_lift_task(true);
+      toggle_lift_task(true);
     }
     else {
-      //setup_task.suspend();
+      toggle_lift_task(false);
     }
   }
 }
 
+pros::Task* lift_task = nullptr;
 void toggle_lift_task(bool on) {
-  //pros::Task lift_task(lift_setup_task, "Setup Task");
+  if (on) {
+    lift_task = new pros::Task(lift_setup_task);
+  }
+  else {
+    lift_task->remove();
+    delete lift_task;
+    lift_task = nullptr;
+  }
+
 }
 
 void lift_setup_task() {
@@ -260,7 +269,7 @@ void lift_setup_task() {
     right_intake.move(127);
     conveyor.move(127);
 
-    pros::Task::delay(30);
+    pros::Task::delay(10);
   }
 
   conveyor.tare_position_all();
@@ -269,12 +278,25 @@ void lift_setup_task() {
   left_intake.move(0);
   right_intake.move(0);
 
+  while (conveyor.get_position() > -300) {
+    pros::Task::delay(10);
+  }
+
+  conveyor.move(0);
+  pros::Task::delay(300);
+  conveyor.move(-127);
+
   while (conveyor.get_position() > -600) {
-    pros::Task::delay(30);
+    pros::Task::delay(10);
   }
 
   conveyor.move(0);
 
+  setting_up = false;
+
+  lift_task->remove();
+  delete lift_task;
+  lift_task = nullptr;
 }
 
 
