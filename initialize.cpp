@@ -13,8 +13,7 @@ void initialize() {
 	set_all_brake_modes(drive_left_group, pros::E_MOTOR_BRAKE_BRAKE);
 	set_all_brake_modes(drive_right_group, pros::E_MOTOR_BRAKE_BRAKE);	
 
-	setColor(RED);
-
+	setColor(BLUE);
 
 }
 
@@ -49,7 +48,7 @@ void autonomous() {
 	pros::Task task(ejectorTask, "Fun time");
 
 
-	Code code_number = SKILLS;
+	Code code_number=TEST;
 
 	// alliance
 	if (code_number == REDPLUS) {
@@ -81,8 +80,6 @@ void autonomous() {
 		pros::Task::delay(100);
 		move_conveyor(true, true);
 
-
-
 		// go to third ring
 		turn_to(14, 50, false);
 		move_intake(true, true);
@@ -101,19 +98,22 @@ void autonomous() {
 		move_seconds(0.4, 30, 90);
 		move_seconds(0.2, 40, 40);
 		move_seconds(0.2, 50, -50);
-		move_seconds(0.2, -50, 50);
-		move_seconds(0.2, 50, -50);
 		//pros::Task::delay(400);
 
 		// touch ladder
 		//move_seconds(0.2, 0, -100);
 		move_inches(-5, 90);
-		turn_to(170, 90, true);
-		turn_to(200, 30);
-		move_inches(40, 110);
-		turn_to(45, true);
-		move_intake_and_conveyor(false);
-		move_seconds(0.8, -40, -40);
+		turn_to(150, 70, true);
+		turn_to(200, 30, true);
+		move_inches(45, 110);
+		
+		task.suspend();
+		activate_piston(ejector, true);
+
+		move_seconds(0.5, 30, 30);
+		//turn_to(30, 70, true);
+		//move_intake_and_conveyor(false);
+		//move_seconds(0.8, -40, -40);
 
 		// alec is a hero and deserves uppies
 
@@ -205,18 +205,23 @@ void autonomous() {
 
 		// get ring 4
 		move_inches(-3, 70);
-		turn_to(45, false);
+		turn_to(45, 60, false);
 		move_inches(12, 50);
 		//move_inches(20, 70);
 		move_seconds(0.8, 60, 80);
 
+
 		// THE WIGGLE
-		move_seconds(0.5, 90, 50);
+		move_seconds(0.5, 90, 30);
+		move_seconds(0.5, 80, 80);
+
 		move_seconds(0.3, -50, 50);
 		move_seconds(0.3, 50, -50);
+
+
 		move_inches(-5, 127);
 		turn_to(185, 80,  true);
-		turn_to(205, 25, true);
+		turn_to(200, 30, true);
 
 		//move_clamp(false);
 		//move_seconds(0.1, -50, 50);
@@ -225,26 +230,30 @@ void autonomous() {
 		//turn_to(40, true);
 
 		// touch ladder
-		move_inches(25, 100);
 
-		turn_to(34, true);
+		//turn_to(34, 60, true);
 
 		set_all_brake_modes(drive_left_group, pros::E_MOTOR_BRAKE_COAST);
 		set_all_brake_modes(drive_right_group, pros::E_MOTOR_BRAKE_COAST);
 
+
+		move_inches(10, 110);
+
 		move_intake_and_conveyor(false);
 
-		task.suspend();
-		activate_piston(ejector, true);
+		move_inches(30, 80);
 
-		move_seconds(0.5, -127,-127);
+		//task.suspend();
+		//activate_piston(ejector, true);
+
+		//move_seconds(0.5, -127,-127);
 
 	}
 
 	else if (code_number == BLUENEG) {
 		// get goal
-		move_inches(-19, 100);
-		move_inches(-14, 50);
+		move_inches(-15, 100);
+		move_inches(-12, 50);
 		move_clamp(true);
 
 		// get ring 2 and 3
@@ -252,7 +261,7 @@ void autonomous() {
 		move_intake_and_conveyor(true);
 		move_inches(8, 60);
 		move_inches(4, 30);
-		turn_to(235, true);
+		turn_to(235, 80, true);
 		move_inches(-3, 40);
 		move_inches(6, 30);
 		move_inches(-4, 40);
@@ -275,7 +284,7 @@ void autonomous() {
 		move_seconds(0.3, -50, 50);
 		move_inches(-5, 127);
 		turn_to(175, 80,  false);
-		turn_to(145, 25, false);
+		turn_to(130, 25, false);
 
 		//move_clamp(false);
 		//move_seconds(0.1, -50, 50);
@@ -286,17 +295,17 @@ void autonomous() {
 		// touch ladder
 		move_inches(25, 100);
 
-		turn_to(308, false);
+		//turn_to(308, false);
 
 		set_all_brake_modes(drive_left_group, pros::E_MOTOR_BRAKE_COAST);
 		set_all_brake_modes(drive_right_group, pros::E_MOTOR_BRAKE_COAST);
 
 		move_intake_and_conveyor(false);
 
-		task.suspend();
-		activate_piston(ejector, true);
+	//	task.suspend();
+	//	activate_piston(ejector, true);
 
-		move_seconds(0.3, -127,-127);
+		move_seconds(0.3, 127,127);
 
 	}
 
@@ -306,9 +315,10 @@ void autonomous() {
 		motor_seconds(conveyor, 0.1, -127);
 
 		// get 1st ring
+		move_conveyor(true, false);
 		turn_to(30, 90, 30);
+		move_inches(18, 80);
 		move_intake_and_conveyor(true);
-		move_inches(22, 80);
 		move_inches(10, 50);
 
 		// get stake
@@ -320,7 +330,7 @@ void autonomous() {
 	
 		// get ring 2
 		move_intake_and_conveyor(true);
-		turn_to(29, true);
+		turn_to(25, true);
 		move_inches(18, 80);
 		move_inches(7, 50);
 	
@@ -354,17 +364,17 @@ void autonomous() {
 		// go to other side
 		move_inches(10, 80);
 		turn_to(285, false);
-		move_inches(50, 83, 80);
+		move_inches(55, 83, 80);
 
 		// get ring 7
 		turn_to(315, true);
 		move_intake_and_conveyor(true);
-		move_inches(25, 50);
+		move_inches(22, 50);
 
 		// get stake 2
 		reset_angle();		
 		move_intake_and_conveyor(false);
-		move_inches(-12, 50);
+		move_inches(-16, 50);
 		move_clamp(true);
 
 		// get ring 8
@@ -399,22 +409,28 @@ void autonomous() {
 		// go to other side
 		move_inches(5, 80, 80);
 		reset_angle();
-		turn_to(25, 90, 60);
-		//move_inches(50, 90, 60);
-		move_inches(65, 70);
+		turn_to(30, 90, 60);
+		move_inches(62, 70);
 
 		// push stake 3 into corner
 		turn_to(290, 10, 60);
+		move_intake_and_conveyor(true);
 		move_inches(30, 55, 50);
-		move_seconds(0.2, 50, 50);
+		move_seconds(0.2, 100, 100);
+		move_intake_and_conveyor(false);
+		motor_seconds(conveyor, 0.3, -127);
 
 		// push stake 4 into corner
 		move_inches(-10, 80);
-		turn_to(100, false);
+		turn_to(95, false);
 		move_inches(57, 73, 70);
 		move_seconds(0.2, 0, 40);
+		move_intake_and_conveyor(true);
 		move_inches(30, 60);
-		move_seconds(0.4, 50, 50);
+		move_seconds(0.4, 100, 100);
+		move_intake_and_conveyor(false);
+		motor_seconds(conveyor, 0.3, -127);
+
 
 
 		move_seconds(0.5, -50, -50);
@@ -424,29 +440,18 @@ void autonomous() {
 
 	else if (code_number == TEST) {
 
-		// go to other side
-		imu.set_heading(20);
-		move_inches(20, 80, 80);
-		reset_angle();
-		move_inches(65, 90, 70);
-		move_inches(20, 60);
+		move_inches(-19, 100);
+		move_inches(-14, 50);
+		move_clamp(true);
 
-		// push stake 3 into corner
-		turn_to(285, 10, 60);
-		//move_inches(20, 90);
-		move_inches(30, 50);
-		move_seconds(0.2, 50, 50);
+		motor_seconds(conveyor, 2, 127);
 
-		// push stake 4 into corner
-		move_inches(-10, 80);
-		turn_to(100, false);
-		move_inches(57, 73, 70);
-		move_seconds(0.2, 0, 40);
-		move_inches(30, 60);
-		move_seconds(0.4, 50, 50);
-
-
-		move_seconds(0.5, -50, -50);
+		turn_to(270, false);
+		move_intake_and_conveyor(true);
+		move_inches(20, 50);
+		motor_seconds(conveyor, 2, 127);
+		move_intake(false, false);
+		
 
 	}
 
@@ -461,6 +466,8 @@ void opcontrol() {
 	set_all_brake_modes(drive_right_group, pros::E_MOTOR_BRAKE_BRAKE);
 
 	pros::Task tasks(ejectorTask, "Fun drive");
+
+
 
 
 	while (true) {
