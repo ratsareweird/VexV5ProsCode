@@ -36,6 +36,8 @@ enum Code {
 	REDNEG,
 	BLUEPLUS,
 	BLUENEG,
+	RED6,
+	BLUE6,
 	SKILLS,
 	TEST	
 };
@@ -47,7 +49,7 @@ void autonomous() {
 
 	pros::Task task(ejectorTask, "Fun time");
 
-	Code code_number = SKILLS;
+	Code code_number = REDNEG;
 
 	// alliance
 	if (code_number == REDPLUS) {
@@ -109,8 +111,8 @@ void autonomous() {
 		// touch ladder
 		//move_seconds(0.2, 0, -100);
 		move_inches(-5, 90);
-		turn_to(100, 90, true);
-		turn_to(130, 30, true);
+		turn_to(135, 90, true);
+		turn_to(165, 30, true);
 		move_inches(40, 110);
 		//turn_to(45, true);
 		move_intake_and_conveyor(false);
@@ -135,8 +137,8 @@ void autonomous() {
 		turn_to(90, 90, -20);
 		turn_to(150, 60, -40);
 		move_intake_and_conveyor(true);
-		move_inches(6, 60);
-		move_inches(9, 30);
+		move_inches(12, 60);
+		move_inches(12, 30);
 		pros::Task::delay(400);
 		move_intake_and_conveyor(false);
 
@@ -173,14 +175,11 @@ void autonomous() {
 		pros::Task::delay(400);
 
 		// touch ladder
-		move_seconds(0.4, -100, -100);
-		//fix_angle(315);
-		set_all_brake_modes(drive_left_group, pros::E_MOTOR_BRAKE_COAST);
-		set_all_brake_modes(drive_right_group, pros::E_MOTOR_BRAKE_COAST);
-
-		move_inches(-38, 85);
+		move_inches(-5, 70);
+		turn_to(185, 60,  false);
+		move_inches(42, 100);
 		move_intake_and_conveyor(false);
-		//move_seconds(0.8, -40, -40);
+		move_seconds(0.4, 40, 40);
 	}
 
 	else if (code_number == REDNEG) {
@@ -197,7 +196,7 @@ void autonomous() {
 		turn_to(125, false);
 		move_inches(-3, 40);
 		move_inches(5, 30);
-		move_inches(-4, 40);
+		move_inches(-4, 30);
 		move_inches(8, 30);
 
 
@@ -209,36 +208,27 @@ void autonomous() {
 		turn_to(45, false);
 		move_inches(12, 50);
 		//move_inches(20, 70);
-		move_seconds(0.8, 60, 80);
+
+		turn_to(15, 60, 90);
+		pros::Task::delay(600);
 
 		// THE WIGGLE
+		move_seconds(0.6, 80, 50);
 		move_seconds(0.5, 90, 50);
 		move_seconds(0.3, -50, 50);
 		move_seconds(0.3, 50, -50);
+
+		pros::Task::delay(600);
 		move_inches(-5, 127);
-		turn_to(205, 80,  false);
-		turn_to(225, 25, false);
-
-		//move_clamp(false);
-		//move_seconds(0.1, -50, 50);
-
-
-		//turn_to(40, true);
+		turn_to(290, 80,  false);
+		turn_to(255, 30, false);
 
 		// touch ladder
-		move_inches(25, 100);
-
-		//turn_to(34, true);
-
-		//set_all_brake_modes(drive_left_group, pros::E_MOTOR_BRAKE_COAST);
-		//set_all_brake_modes(drive_right_group, pros::E_MOTOR_BRAKE_COAST);
+		move_inches(25, 110);
 
 		move_intake_and_conveyor(false);
 
-		//task.suspend();
-		//activate_piston(ejector, true);
-
-		move_seconds(0.5, 127,127);
+		move_seconds(0.5, 50,50);
 
 	}
 
@@ -257,7 +247,7 @@ void autonomous() {
 		move_inches(-3, 40);
 		move_inches(6, 30);
 		move_inches(-4, 40);
-		move_inches(8, 30);
+		move_inches(10, 30);
 
 
 		pros::Task::delay(300);
@@ -275,29 +265,17 @@ void autonomous() {
 		move_seconds(0.3, 50, -50);
 		move_seconds(0.3, -50, 50);
 		move_inches(-5, 127);
-		turn_to(175, 80,  false);
-		turn_to(145, 25, false);
-
-		//move_clamp(false);
-		//move_seconds(0.1, -50, 50);
+		turn_to(160, 80,  false);
+		turn_to(130, 25, false);
 
 
-		//turn_to(40, true);
 
 		// touch ladder
 		move_inches(25, 100);
 
-		turn_to(308, false);
-
-		set_all_brake_modes(drive_left_group, pros::E_MOTOR_BRAKE_COAST);
-		set_all_brake_modes(drive_right_group, pros::E_MOTOR_BRAKE_COAST);
-
 		move_intake_and_conveyor(false);
 
-		task.suspend();
-		activate_piston(ejector, true);
-
-		move_seconds(0.3, -127,-127);
+		move_seconds(0.6, 50, 50);
 
 	}
 
@@ -372,13 +350,14 @@ void autonomous() {
 		move_clamp(true);
 
 		// get ring 8
-		turn_to(325, false);
+		turn_to(328, false);
 		move_intake_and_conveyor(true);
 		move_inches(17, 70);
 
 		// get ring 9
 		move_inches(34, 80, 63);
-		move_inches(5, 40);
+		move_seconds(0.5, 40, 40);
+		//move_inches(5, 40);
 
 		// get ring 10 and 11
 		move_inches(-14, 50);
@@ -431,6 +410,48 @@ void autonomous() {
 
 		//move_seconds(0.4, -127, -127);
 		//move_intake_and_conveyor(false);
+
+	}
+
+	else if (code_number == RED6) {
+		// get goal
+		move_inches(-19, 100);
+		move_inches(-14, 50);
+		move_clamp(true);
+
+		// get ring 2 and 3
+		turn_to(122, true);
+		move_intake_and_conveyor(true);
+		move_inches(10, 60);
+		move_inches(6, 30);
+		turn_to(125, false);
+		move_inches(-3, 40);
+		move_inches(5, 30);
+		move_inches(-4, 30);
+		move_inches(8, 30);
+
+
+		pros::Task::delay(300);
+
+
+		// get ring 4
+		move_inches(-3, 70);
+		turn_to(45, false);
+		move_inches(12, 50);
+		//move_inches(20, 70);
+
+		move_seconds(0.8, 55, 90);
+		pros::Task::delay(600);
+
+		// THE WIGGLE
+		move_seconds(0.6, 80, 50);
+		move_seconds(0.5, 90, 50);
+		move_seconds(0.3, -50, 50);
+		move_seconds(0.3, 50, -50);
+
+	}
+
+	else if (code_number == BLUE6) {
 
 	}
 
