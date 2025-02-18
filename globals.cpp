@@ -683,7 +683,7 @@ void setColor(Color color) {
 Returns the color that the optical sensor sees and is close enough to the sensor
  */
 Color get_seen_color() {
-  if (optical_sensor.get_proximity() > 250) {
+  if (optical_sensor.get_proximity() > 200) {
     if (optical_sensor.get_rgb().red > 150) {
       return RED;
     }
