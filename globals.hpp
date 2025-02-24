@@ -11,26 +11,19 @@ extern pros::Motor right_middle;
 extern pros::Motor right_back;
 extern std::vector<pros::Motor> drive_left_group;
 extern std::vector<pros::Motor> drive_right_group;
- 
-// intake
-extern pros::Motor left_intake;
-extern pros::Motor right_intake;
 
-// conveyor
-extern pros::Motor conveyor;
+extern pros::Motor intake;
+
+extern pros::Motor lady_brown;
 
 
+// pistons
 extern pros::adi::DigitalOut clamp;
-
-extern pros::adi::DigitalOut lift;
-
 extern pros::adi::DigitalOut ejector;
-
-
+extern pros::adi::DigitalOut doinker;
 
 // inertia sensor
 extern pros::IMU imu;
-
 
 // optical shaft encoders
 extern pros::adi::Encoder left_drive_encoder;
@@ -38,16 +31,13 @@ extern pros::adi::Encoder right_drive_encoder;
 
 extern pros::adi::Encoder lift_encoder;
 
-// clamp sensor
 extern pros::adi::DigitalIn clamp_sensor;
  
-// vision sensor
 extern pros::Vision vision_sensor;
 
-// optical sensor
 extern pros::Optical optical_sensor;
 
-// controller
+// main controller
 extern pros::Controller controller;
 
 enum Color {
@@ -81,7 +71,8 @@ bool isGroupEmpty(std::vector<pros::Motor> group);
 void drive_wheels();
 void drive_clamp();
 void drive_intake();
-void drive_lift();
+void drive_lady_brown();
+void drive_doinker();
 
 void score_preload(); 
 
@@ -99,9 +90,8 @@ void turn_to(int degrees, int speed, bool right);
 void turn_to(int degrees, int left_speed, int right_speed);
 void fix_angle(int degrees);
 void move_until_degrees(int left_speed, int right_speed, int degrees);
-void move_intake_and_conveyor(bool on);
 void move_intake(bool on, bool forward);
-void move_conveyor(bool on, bool forward);
+void move_intake(bool on);
 void move_clamp(bool on);
 void motor_seconds(pros::Motor motor, float seconds, int speed);
 
@@ -109,6 +99,8 @@ void enableEjector(bool on);
 
 void ejectorTask();
 void lift_setup_task();
+
+void back_off();
 
 void toggle_lift_task(bool on);
 
