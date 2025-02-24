@@ -7,56 +7,44 @@
 #include <math.h>
 
 
-// motors
-
 // wheels
-pros::Motor left_front(-20, pros::v5::MotorGears::blue, pros::v5::MotorEncoderUnits::degrees);
-pros::Motor left_middle(-2, pros::v5::MotorGears::blue, pros::v5::MotorEncoderUnits::degrees);
-pros::Motor left_back(-19, pros::v5::MotorGears::blue, pros::v5::MotorEncoderUnits::deg);
-pros::Motor right_front(3, pros::v5::MotorGears::blue, pros::v5::MotorEncoderUnits::deg);
-pros::Motor right_middle(13, pros::v5::MotorGears::blue, pros::v5::MotorEncoderUnits::deg);
-pros::Motor right_back(16, pros::v5::MotorGears::blue, pros::v5::MotorEncoderUnits::deg);
+pros::Motor left_front(-18, pros::v5::MotorGears::blue, pros::v5::MotorEncoderUnits::degrees);
+pros::Motor left_middle(5, pros::v5::MotorGears::blue, pros::v5::MotorEncoderUnits::degrees);
+pros::Motor left_back(-7, pros::v5::MotorGears::blue, pros::v5::MotorEncoderUnits::deg);
+pros::Motor right_front(9, pros::v5::MotorGears::blue, pros::v5::MotorEncoderUnits::deg);
+pros::Motor right_middle(-10, pros::v5::MotorGears::blue, pros::v5::MotorEncoderUnits::deg);
+pros::Motor right_back(8, pros::v5::MotorGears::blue, pros::v5::MotorEncoderUnits::deg);
 std::vector<pros::Motor> drive_left_group = {left_front,left_middle,left_back};
 std::vector<pros::Motor> drive_right_group = {right_front,right_middle,right_back};
 
-// intake
-pros::Motor left_intake(18,pros::v5::MotorGears::green, pros::v5::MotorEncoderUnits::deg);
-pros::Motor right_intake(-14, pros::v5::MotorGears::green, pros::v5::MotorEncoderUnits::deg);
+// motors
+pros::Motor intake(-20,pros::v5::MotorGears::green, pros::v5::MotorEncoderUnits::deg);
+pros::Motor lady_brown(1, pros::v5::MotorGears::red, pros::v5::MotorEncoderUnits::deg);
 
-// conveyor
-pros::Motor conveyor(-15, pros::v5::MotorGears::green, pros::v5::MotorEncoderUnits::deg);
-
-// clamp
-pros::adi::DigitalOut clamp('D');
-
-// lift
-pros::adi::DigitalOut lift('F');
-
-// ejector
-pros::adi::DigitalOut ejector('E');
+// pistons
+pros::adi::DigitalOut clamp('F');
+pros::adi::DigitalOut ejector('A');
+pros::adi::DigitalOut doinker('E');
 
 // inertia sensor
-pros::Imu imu(17);
+pros::Imu imu(12);
 
 // optical shaft encoder
 pros::adi::Encoder left_drive_encoder('H', 'G', false);
 pros::adi::Encoder right_drive_encoder('B', 'C', false);
 
-// vision sensor
-pros::Vision vision_sensor(11, pros::E_VISION_ZERO_CENTER);
-
 // optical sensor
-pros::Optical optical_sensor(11);
-
-pros::adi::Encoder lift_encoder({5, 'A', 'B'}, false);
+pros::Optical optical_sensor(14);
 
 // controller
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
 
+
+
 // global variables
 const double PI = 3.1415926;
 
-const double DRIVE_TRAIN_GEAR_RATIO = 3.0 / 5.0;
+const double DRIVE_TRAIN_GEAR_RATIO = 3.0 / 4.0;
 const double WHEEL_RADIUS = 1.625;
 const double CHASSIS_WIDTH = 12;
 
@@ -65,7 +53,6 @@ Color side = RED;
 
 pros::vision_signature_s_t RED_SIG = pros::Vision::signature_from_utility(1, 8543, 11685, 10114, -729, 1, -364, 3.000, 0);
 pros::vision_signature_s_t BLUE_SIG = pros::Vision::signature_from_utility(2, -4287, -3641, -3964, 8191, 10083, 9137, 3.000, 0);
-
 
 
 
@@ -179,8 +166,9 @@ Gets motor average motor position of a specified motor group
 int average_motor_position(std::vector<pros::Motor> group) {
   int position = 0;
   for (pros::Motor motor : group) {
-    position += pros::c::motor_get_position(motor.get_port());
+    position += motor.get_position();
   } 
+
   return position / group.size();
 }
 
@@ -212,97 +200,121 @@ void drive_wheels() {
   wheels_speed(left_speed, right_speed);
 }  
 
-
+pros::Task* back_off_task = nullptr;
 
 pros::controller_digital_e_t intake_button = DIGITAL_R2;
 pros::controller_digital_e_t extake_button = DIGITAL_R1;
-pros::controller_digital_e_t lift_setup = DIGITAL_RIGHT;
-
-bool setting_up = false;
-
 void drive_intake() {
-  if (!setting_up) {
-    if (controller.get_digital(intake_button)) {
-      left_intake.move(127);
-      right_intake.move(127);
-      conveyor.move(127);
-    }
-    else if (controller.get_digital(extake_button)) {
-      right_intake.move(-127);
-      left_intake.move(-127);
-      conveyor.move(-127);
-    }
-    else {
-      left_intake.move(0);
-      right_intake.move(0);
-      conveyor.move(0);
-    }
-  }
- 
-  if (controller.get_digital_new_press(lift_setup)) {
-    setting_up = !setting_up;
-    if (setting_up) {
-      toggle_lift_task(true);
-    }
-    else {
-      toggle_lift_task(false);
-    }
-  }
-}
+  static int timer = 0;
+  if (controller.get_digital(intake_button)) {
+    intake.move(127);
 
-pros::Task* lift_task = nullptr;
-void toggle_lift_task(bool on) {
-  if (on) {
-    lift_task = new pros::Task(lift_setup_task);
+    if (intake.get_actual_velocity() < 20) {
+      timer += 1;
+    }
+
+    if (timer >= 200) {
+      back_off_task = new pros::Task(back_off);
+      timer = 0;
+    }
+  }
+
+  else if (controller.get_digital(extake_button)) {
+    intake.move(-127);
+    timer = 0;
   }
   else {
-    lift_task->remove();
-    delete lift_task;
-    lift_task = nullptr;
+    intake.move(0);
+    timer = 0;
   }
-
 }
 
-void lift_setup_task() {
-  while (get_seen_color() != side) {
-    left_intake.move(127);
-    right_intake.move(127);
-    conveyor.move(127);
+void back_off() {
+  move_intake(true);
+  pros::Task::delay(200);
+  move_intake(false);
 
-    pros::Task::delay(10);
-  }
-
-  conveyor.tare_position_all();
-
-  conveyor.move(-127);
-  left_intake.move(0);
-  right_intake.move(0);
-
-  while (conveyor.get_position() > -300) {
-    pros::Task::delay(10);
-  }
-
-  conveyor.move(0);
-  pros::Task::delay(300);
-  conveyor.move(-127);
-
-  while (conveyor.get_position() > -600) {
-    pros::Task::delay(10);
-  }
-
-  conveyor.move(0);
-
-  setting_up = false;
-
-  lift_task->remove();
-  delete lift_task;
-  lift_task = nullptr;
+  back_off_task->remove();
+  delete back_off_task;
+  back_off_task = nullptr;
 }
 
+pros::controller_digital_e_t brown_up = DIGITAL_L1;
+pros::controller_digital_e_t brown_down = DIGITAL_DOWN;
+void drive_lady_brown() {
+  if (controller.get_digital(brown_up) && lady_brown.get_position() < 165) {
+    if (lady_brown.get_position() < 50) {
+      lady_brown.move(35);
+    }
+    else {
+      lady_brown.move(70);
+    }
+  }
+  else if (controller.get_digital(brown_down)) {
+    if (lady_brown.get_position() < 50) {
+      lady_brown.move(-35);
+    }
+    else {
+      lady_brown.move(-70);
+    }
+  }
+  else if (lady_brown.get_position() > 150) {
+    lady_brown.move(-15);
+  }
+  else {
+    lady_brown.move(10);
+  }
+ /* if (controller.get_digital(brown_up) && lady_brown.get_position() < 165) {
+    lady_brown.move(60);
+  }
+  else if (controller.get_digital(brown_down)) {
+    lady_brown.move(-60);
+  }
+  else if (lady_brown.get_position() < 130 && lady_brown.get_position() > 55) {
+    lady_brown.move(-20);
+  }
+  else if (lady_brown.get_position() > 150) {
+    lady_brown.move(-15);
+  }
+  else {
+    lady_brown.move(15);
+  }*/
 
-pros::controller_digital_e_t clamp_button = DIGITAL_L1;
+ /* static int position = 0;
+  if (controller.get_digital_new_press(brown_up) && position < 2) {
+    position += 1;
+  }
+  else if (controller.get_digital(brown_down) && position > 0) {
+    position -= 1;
+  }
+
+  static int target = 0;
+  if (position == 2) {
+    target = 90;
+  }
+  else if (position == 1) {
+    target = 15;
+  }
+  else {
+    target = 0;
+  }
+
+  if (lady_brown.get_position() < target + 5) {  
+    lady_brown.move(60);
+  }
+  else if (lady_brown.get_position() > target - 5) {
+    lady_brown.move(-60);
+  }
+  else {
+    lady_brown.move(0);
+  }*/
+
+
+ 
+}
+
+pros::controller_digital_e_t clamp_button = DIGITAL_B;
 pros::controller_digital_e_t alt_clamp_button = DIGITAL_L2;
-
 void drive_clamp() {
   static bool on = false;
   if (controller.get_digital_new_press(clamp_button) || controller.get_digital_new_press(alt_clamp_button)) {
@@ -311,29 +323,12 @@ void drive_clamp() {
   }
 }
 
-
-//pros::controller_digital_e_t lift_button;
-pros::controller_digital_e_t alt_lift_button = DIGITAL_Y;
-
-
-void drive_lift() {
+pros::controller_digital_e_t doinker_button = DIGITAL_UP;
+void drive_doinker() {
   static bool on = false;
-
-  if (controller.get_digital_new_press(alt_lift_button)) {
+  if (controller.get_digital_new_press(doinker_button)) {
     on = !on;
-    activate_piston(lift, on);
-  }
-}
-
-
-pros::controller_digital_e_t sp1 = DIGITAL_LEFT;
-pros::controller_digital_e_t sp2 = DIGITAL_A;
-void score_preload() {
-  if (controller.get_digital(sp1) && controller.get_digital_new_press(sp2)) {
-    motor_seconds(conveyor, 0.1, -127);
-		turn_to(302, -70, 0);
-		motor_seconds(conveyor, 0.7, 127);
-		motor_seconds(conveyor, 0.1, -127);
+    activate_piston(doinker, on);
   }
 }
 
@@ -344,9 +339,10 @@ void score_preload() {
 /**
 Moves chassis a specified amount of inches at a specified speed
  */
-void move_inches(double inches, int speed) {\
+void move_inches(double inches, int speed) {
   left_drive_encoder.reset();
   right_drive_encoder.reset();
+
 
   wheels_speed(speed * sign(inches), speed * sign(inches));
 
@@ -359,6 +355,7 @@ void move_inches(double inches, int speed) {\
 
 void move_inches(double inches, int left_speed, int right_speed){
   left_drive_encoder.reset();
+
 
   wheels_speed(left_speed, right_speed);
 
@@ -386,7 +383,6 @@ void move_inches_c(double left_inches, double right_inches, int max_speed) {
   }
 
   while (fabs(degrees_to_drive_inches(right_drive_encoder)) < fabs(right_inches)) {
-    controller.set_text(0, 0, std::to_string(degrees_to_drive_inches(right_drive_encoder)));
     pros::Task::delay(20);
   }
   wheels_speed(0, 0);
@@ -489,8 +485,8 @@ Turns the chassis until it reaches a specified degree using the imu.
 This will probably turn in the direction that will result in the least amount of turning
 */
 void reset_angle() {
-  static int margin = 2;
-  static int speed = 35;
+  static int margin = 3;
+  static int speed = 60;
 
   double start_heading = imu.get_heading();
 
@@ -502,6 +498,17 @@ void reset_angle() {
   }
 
   while (imu.get_heading() > margin && imu.get_heading() < 360 - margin) {
+    pros::Task::delay(10);
+  }
+
+  if (imu.get_heading() > 180) {
+    wheels_speed(-speed, speed);
+  }
+  else {
+    wheels_speed(speed, -speed);
+  }
+
+  while (imu.get_heading() > 1 && imu.get_heading() < 360 - 1) {
     pros::Task::delay(10);
   }
 
@@ -523,6 +530,17 @@ void turn_to(int degrees, bool right) {
   while (imu.get_heading() > degrees + margin || imu.get_heading() < degrees - margin) {
     pros::Task::delay(10);
   }
+  if (!right) {
+    wheels_speed(speed / 2, -speed / 2);
+  }
+  else {
+    wheels_speed(-speed / 2, speed / 2);
+  }
+
+  while (imu.get_heading() > degrees + 1 || imu.get_heading() < degrees - 1) {
+    pros::Task::delay(10);
+  }
+
   wheels_speed(0, 0);
 }
 
@@ -559,10 +577,10 @@ void turn_to(int degrees, int left_speed, int right_speed) {
 void fix_angle(int degrees) {
   int margin = 5;
   if (imu.get_heading() > degrees + margin) {
-    wheels_speed(-50, 50);
+    wheels_speed(-40, 40);
   }
   else if (imu.get_heading() < degrees - margin) {
-    wheels_speed(50, 50);
+    wheels_speed(40, 40);
   }
 
   while (imu.get_heading() > degrees + margin || imu.get_heading() < degrees - margin) {
@@ -596,34 +614,26 @@ Turns the intake on or off in a specifed direction.
 void move_intake(bool on, bool forward) {
   if (on) {
     if (forward) {
-      left_intake.move(127);
-      right_intake.move(127);
+      intake.move(127);
     }
     else {
-      left_intake.move(-127);
-      right_intake.move(-127);
+      intake.move(-127);
     }
-
   }
   else {
-    right_intake.move(0);
-    left_intake.move(0);
+    intake.move(0);
   }
 }
 
 /**
-Turns the conveyor on or off in a specifed direction.
+Turns intake on or off
 */
-void move_conveyor(bool on, bool forward) {
+void move_intake(bool on) {
   if (on) {
-    if (forward) {
-      conveyor.move(127);    }
-    else {
-      conveyor.move(-127);
-    }
+    intake.move(127);
   }
   else {
-    conveyor.move(0);
+    intake.move(0);
   }
 }
 
@@ -632,7 +642,6 @@ This is a combination of move intake and move conveyor
 */
 void move_intake_and_conveyor(bool on) {
   move_intake(on, true);
-  move_conveyor(on, true);
 }
 
 /**
@@ -685,6 +694,7 @@ Returns the color that the optical sensor sees and is close enough to the sensor
 Color get_seen_color() {
   if (optical_sensor.get_proximity() > 200) {
     if (optical_sensor.get_rgb().red > 150) {
+      // controller.set_text(0, 0, "RED")
       return RED;
     }
     else if (optical_sensor.get_rgb().blue > 150){
