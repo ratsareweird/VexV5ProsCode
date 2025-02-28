@@ -39,8 +39,6 @@ enum Code {
 	REDNEG,
 	BLUEPLUS,
 	BLUENEG,
-	RED6,
-	BLUE6,
 	SKILLS,
 	TEST	
 };
@@ -50,9 +48,8 @@ enum Code {
 // runs the user autonomous code
 void autonomous() {
 
-	pros::Task task(ejectorTask, "Fun time");
 
-	Code code_number = BLUEPLUS;
+	Code code_number = SKILLS;
 
 	// alliance
 	if (code_number == REDPLUS) {
@@ -327,58 +324,106 @@ void autonomous() {
 
 	else if (code_number == SKILLS) {
 		// score preload on alliance stake
-		motor_seconds(intake, 0.4, 127);
-		motor_seconds(intake, 0.1, -127);
+		motor_seconds(conveyor, 0.4, 127);
+		motor_seconds(conveyor, 0.1, -127);
 
 		// get 1st ring
 		move_intake(true, false);
-		turn_to(33, 90, 30);
-		move_inches(22, 80);
+		turn_to(30, 90, 50);
+		move_inches(19, 80);
 		move_intake(true);
 		move_inches(10, 50);
 
 		// get stake
-		turn_to(7, false);
-		move_inches(-11, 80);
+		turn_to(8, false);
 		move_intake(false);
-		move_inches(-8, 50);
+		move_inches(-5, 80);
+		move_inches(-14, 40);
 		move_clamp(true);
 	
 		// get ring 2
+		move_inches(2, 40);
 		move_intake(true);
-		turn_to(29, true);
-		move_inches(18, 80);
+		turn_to(38, true);
+		move_inches(13, 80);
 		move_inches(7, 50);
 	
 		// get ring 3
-		turn_to(18, 55, 95);
-		//move_inches(19, 65, 85);
-		move_inches(9, 30);
+		turn_to(30, 40, 85);
+		move_inches(8, 50);
+		move_inches(8, 30);
 		pros::Task::delay(300);
 
 		// get ring 4, 5
-		move_inches(-9, 80);
-		turn_to(159, 40, -60);
-		move_inches(13, 75);
-		pros::Task::delay(300);
+		move_inches(-3, 80);
+		turn_to(145, 20, -60);
+		move_inches(22, 75);
 		move_inches(16, 50);
-		move_seconds(0.4, 50, 50);
+		move_seconds(0.8, 50, 50);
 
 		// get ring 6
-		move_inches(-16, 75);
+		move_inches(-18, 75);
 		turn_to(110, 0, 90);
 		move_inches(4, 70);
 		move_seconds(0.3, 50, 50);
 
 		// score stake
-		turn_to(355, -60, 60);
-		move_inches(-18, 80);		
-		move_seconds(0.2, -50, -50);
+		turn_to(15, -60, 60);
 		pros::Task::delay(400);
+		move_inches(-5, 80);		
+		move_seconds(0.6, -50, -50);
+		motor_seconds(conveyor, 0.2, -127);
 		move_clamp(false);
 		move_intake(false);
 
 		// go to other side
+		move_inches(6, 40);
+		turn_to(75, true);
+		move_seconds(0.5, 40, 40);
+		move_inches(-66, 70, 75);
+		move_inches(-18, 30);
+
+		// get 2nd stake
+		move_clamp(true);
+		//reset_angle();
+
+		// get 1st ring pt.2
+		turn_to(22, false);
+		move_intake(true);
+		move_inches(23, 60);
+
+		// get 2nd ring pt.2
+		turn_to(283, false);
+		move_inches(23, 60);
+
+		// get 3rd ring pt.2
+		turn_to(320, 70, -20);
+		move_inches(13, 50);
+
+		// get 4th and 5th ring pt.2
+		turn_to(210, -60, 10);
+		move_inches(25, 70);
+		move_inches(23, 50);
+		move_seconds(0.5, 40, 40);
+
+		// get 6th ring pt.2
+		move_inches(-13, 75);
+		move_inches(-8, 40);
+		turn_to(240, 90, 0);
+		move_inches(4, 70);
+		move_seconds(0.3, 50, 50);
+
+		// score stake 2
+		move_inches(-3, 50);
+		turn_to(5, true);
+		move_inches(-15, 60);
+		move_seconds(0.3, -40, -40);
+
+		move_intake(false);
+		move_clamp(false);
+
+
+		/*// go to other side
 		move_inches(10, 80);
 		turn_to(280, false);
 		move_inches(50, 83, 80);
@@ -455,59 +500,12 @@ void autonomous() {
 		move_intake(false, false);
 
 		//move_seconds(0.4, -127, -127);
-		//move_intake(false);
+		//move_intake(false);*/
 
 	}
-
-	else if (code_number == RED6) {
-		// get goal
-		move_inches(-19, 100);
-		move_inches(-14, 50);
-		move_clamp(true);
-
-		// get ring 2 and 3
-		turn_to(122, true);
-		move_intake(true);
-		move_inches(10, 60);
-		move_inches(6, 30);
-		turn_to(125, false);
-		move_inches(-3, 40);
-		move_inches(5, 30);
-		move_inches(-4, 30);
-		move_inches(8, 30);
-
-
-		pros::Task::delay(300);
-
-
-		// get ring 4
-		move_inches(-3, 70);
-		turn_to(45, false);
-		move_inches(12, 50);
-		//move_inches(20, 70);
-
-		move_seconds(0.8, 55, 90);
-		pros::Task::delay(600);
-
-		// THE WIGGLE
-		move_seconds(0.6, 80, 50);
-		move_seconds(0.5, 90, 50);
-		move_seconds(0.3, -50, 50);
-		move_seconds(0.3, 50, -50);
-
-	}
-
-	else if (code_number == BLUE6) {
-
-	}
-
 	else if (code_number == TEST) {
-
-		
-
+		move_inches(10, 50);
 	}
-
-	task.remove();
 
 }
 
@@ -517,16 +515,19 @@ void opcontrol() {
 	set_all_brake_modes(drive_left_group, pros::E_MOTOR_BRAKE_BRAKE);
 	set_all_brake_modes(drive_right_group, pros::E_MOTOR_BRAKE_BRAKE);
 
-	pros::Task tasks(ejectorTask, "Fun drive");
+	//pros::Task tasks(ejectorTask, "Fun drive");
 
+	potentiometer.calibrate();
 
 	while (true) {
 		drive_wheels();
 		drive_clamp();
 		drive_intake();
+		drive_conveyor();
 		drive_lady_brown();
 
-		controller.set_text(1, 1, std::to_string(degrees_to_drive_inches(left_drive_encoder)));
+		pros::lcd::set_text(0, "left " + std::to_string(degrees_to_drive_inches(left_drive_encoder)));
+		pros::lcd::set_text(1, "right "+ std::to_string(degrees_to_drive_inches(right_drive_encoder)));
 
 		pros::Task::delay(20);
 	}
