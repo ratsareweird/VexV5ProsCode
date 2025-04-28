@@ -77,38 +77,25 @@ void autonomous() {
 
 		// get ring 2
 		move_inches(-0.2, 40, 40);
-		turn(25);
+		turn(20);
 		move_inches(44, 80, 65);
-		//fix_angle();
-		//turn(15);
-		move_inches(17, 50, 50);
-		turn_to(315, false);
-		move_seconds(0.5, 90, 90);
+		reset_angle();
+
+		move_inches(10, 50, 50);
+		turn_to(310, false);
+		move_seconds(0.8, 127, 127);
 		move_inches(-15, 40, 40);
+		move_inches(6, 30, 30);
+		move_inches(-12, 90);
+		move_lady_brown(true, true);
+		turn(120);
+		move_lady_brown(false, true);
 		move_intake(false);
-		move_inches(-30, 90);
-		move_lady_brown(true, true);
-		turn(180);
-		move_lady_brown(false, true);
+		move_inches(50, 70);
+		move_seconds(0.5, 40, 40);
+
+
 		
-
-
-
-		/*move_inches(-5, 40);
-		turn_to(340, 70, 20);
-		move_inches(12, 70);
-		move_intake(true, false);
-		move_seconds(0.3, 20, 70);
-		move_intake(true, true);
-		move_seconds(0.9, 20, 70);
-		pros::delay(1000);
-
-		// touch ladder
-		move_inches(-20, 70);
-		move_lady_brown(true, true);
-		turn_to(130, true);
-		move_lady_brown(false, true);
-		move_seconds(2, 60, 60);*/
 
 	}
 
